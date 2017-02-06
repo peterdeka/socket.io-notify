@@ -2,14 +2,17 @@ var fs = require('fs');
 
 const express = require('express');
 const app = express();
+const postApp = express();
 const bodyParser = require('body-parser');
-const port = process.env.PORT || 3000;
+const port = process.env.WSPORT || 3000;
+const postPort = process.env.POSTPORT || 5015;
 const notificationSecret = process.env.NOTIFICATION_SECRET || 'NOTIFICATION_SECRET';
 const notificationKey = process.env.NOTIFICATION_KEY || 'NOTIFICATION_KEY'
 const EVENTS = {
     newNotification: 'NEW_NOTIFICATION'
 };
 var server;
+var postServer;
 
 if(process.env.SSL_KEY && process.env.SSL_CERT) {
     var options = {
@@ -17,8 +20,10 @@ if(process.env.SSL_KEY && process.env.SSL_CERT) {
       cert: fs.readFileSync(process.env.SSL_CERT)
     };
     server = require('https').createServer(options, app);
+    postServer = require('https').createServer(options, postApp);
 } else {
     server = require('http').createServer(app);
+    postServer = require('http').createServer(postApp);
 }
 
 
@@ -26,15 +31,17 @@ const io = require('socket.io')(server);
 
 
 server.listen(port, () => console.log('Server listening at port %d', port));
+postServer.listen(5015, () => console.log('Server listening at port %d', 5015));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
+postApp.use(bodyParser.json());
+postApp.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(express.static(__dirname + '/public'));
+if (!process.env.PRODUCTION)
+  app.use(express.static(__dirname + '/public'));
 
-app.post('/send', (req, res) => {
+postApp.post('/send', (req, res) => {
     const data = req.body;
     const dispath = (channel, notification) => {
         io.to(channel).emit(EVENTS.newNotification, data.notification);
