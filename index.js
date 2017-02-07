@@ -31,15 +31,14 @@ const io = require('socket.io')(server);
 
 
 server.listen(port, () => console.log('Server listening at port %d', port));
-postServer.listen(5015, () => console.log('Server listening at port %d', 5015));
+postServer.listen(postPort, () => console.log('Server listening at port %d', postPort));
 
 postApp.use(bodyParser.json());
 postApp.use(bodyParser.urlencoded({
     extended: true
 }));
 
-if (!process.env.PRODUCTION)
-  app.use(express.static(__dirname + '/public'));
+  //postApp.use(express.static(__dirname + '/public'));
 
 postApp.post('/send', (req, res) => {
     const data = req.body;
