@@ -27,7 +27,8 @@ if(process.env.SSL_KEY && process.env.SSL_CERT) {
 }
 
 
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, { path: '/stream/events'});
+//(server);
 
 
 server.listen(port, () => console.log('Server listening at port %d', port));
@@ -39,6 +40,9 @@ postApp.use(bodyParser.urlencoded({
 }));
 
   //postApp.use(express.static(__dirname + '/public'));
+postApp.get('/alive', (req,res) =>{
+  return res.status(200).json('ok');
+});
 
 postApp.post('/send', (req, res) => {
     const data = req.body;
